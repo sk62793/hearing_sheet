@@ -255,7 +255,7 @@ const renderRadioQuery = withStyles(theme => ({
             <Button
                 variant="outlined"
                 color="primary"
-                className={classes.button}
+                style={{backgroundColor: '#fff'}}
                 onClick={() => fields.push({})}
             >
                 選択肢式の質問を追加
@@ -302,7 +302,7 @@ const renderTextQuery = withStyles(theme => ({
                 <Button
                     variant="outlined"
                     color="primary"
-                    className={classes.button}
+                    style={{backgroundColor: '#fff'}}
                     onClick={() => fields.push({})}
                 >
                     記述式の質問を追加
