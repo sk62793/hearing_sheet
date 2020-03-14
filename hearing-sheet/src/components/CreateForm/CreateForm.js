@@ -173,6 +173,53 @@ const renderInputDisabled =  ({
     </FormControl>
 )
 
+const renderChoices = withStyles(theme => ({
+    choices: {
+        listStyle: 'none',
+        display: 'flex',
+    },
+}))(
+    ({
+        classes,
+        fields,
+        meta: { error }
+    }) => (
+        <ul style={{width: '100%', padding: '0'}}>
+            <li style={{listStyle: 'none'}}>
+                <Button
+                    className={classes.button}
+                    variant="outlined"
+                    color="primary"
+                    onClick={() => fields.push()}
+                >
+                    Add Choice
+                </Button>
+            </li>
+            {fields.map((choice, index) => (
+                <li key={index} className={classes.choices}>
+                    <div style={{lineHeight: '4rem', margin: '1.2rem 1rem 0 0'}}>○</div>
+                    <Field
+                        name={choice}
+                        type="text"
+                        component={renderInput}
+                        label={`Choice #${index + 1}`}
+                    />
+                    <Button
+                        className={classes.button}
+                        style={{margin: '1rem .5rem'}}
+                        variant="outlined"
+                        color="primary"
+                        onClick={() => fields.remove(index)}
+                    >
+                        削除
+                    </Button>
+                </li>
+            ))}
+            {error && <li>{error}</li>}
+        </ul>
+    )
+)
+
 const renderRadioQuery = withStyles(theme => ({
     content: {
         padding: '2.4rem',
@@ -189,9 +236,6 @@ const renderRadioQuery = withStyles(theme => ({
 }))( 
     ({
         fields,
-        label,
-        row = true,
-        required = 'false',
         classes,
         rootClass = '',
     }) => (
@@ -200,22 +244,10 @@ const renderRadioQuery = withStyles(theme => ({
             <div key={q_id} className={classes.content}>
                 <Field
                     component={renderInput}
-                    name={`${q_id}.radio_question`}
+                    name={`${name}.question`}
                     label='質問'
                 />
-                {fields.map((name, a_id) => (
-                    <div key={a_id} className={classes.choices}>
-                        <Field
-                            component={renderInput}
-                            name={`${a_id}.radio_choice`}
-                            label='回答'
-                        />
-                        <Button onClick={() => fields.remove(a_id)}>削除</Button>                 
-                    </div>
-                ))}
-                <div>
-                    <Button onClick={() => fields.push({})}>選択肢を追加</Button>              
-                </div>
+                <FieldArray name={`${name}.choice`} component={renderChoices} />
                 <Button onClick={() => fields.remove(q_id)}>削除</Button>
             </div>
         ))}
@@ -247,7 +279,6 @@ const renderTextQuery = withStyles(theme => ({
 }))(
     ({
         fields,
-        required = 'false',
         classes,
         rootClass = '',
     }) => (
@@ -256,12 +287,12 @@ const renderTextQuery = withStyles(theme => ({
                 <div key={id} className={classes.content}>
                     <Field
                         component={renderInput}
-                        name={`${id}.text_question`}
-                        label='質問'
+                        name={`${name}.question`}
+                        label={`質問 #${id}`}
                     />
                     <Field
                         component={renderInputDisabled}
-                        name={`${name}.disabled`}
+                        name={`${name}.answer`}
                         label={`回答(記述式)`}
                     />
                     <Button onClick={() => fields.remove(id)}>削除</Button>
@@ -302,8 +333,8 @@ class CreateForm extends Component {
                             <Field label="タイトル" name="title" type="text" component={renderTitleField} required />
                             <Field label="フォームの説明" name="description" type="text" component={renderInput} required />
                         </div>
-                        <FieldArray name='contents_text_query' component={renderTextQuery} rootClass={classes.formControl} />
-                        <FieldArray name='contens_radio_query' component={renderRadioQuery} rootClass={classes.formControl} /> 
+                        <FieldArray name="radio_query" component={renderRadioQuery} rootClass={classes.formControl} />
+                        <FieldArray name='text_query' component={renderTextQuery} rootClass={classes.formControl} />
                         <Button
                             variant="outlined"
                             color="primary"
