@@ -1,16 +1,25 @@
 import React, { Component } from 'react';
 
 import { compose } from 'redux';
-import { reduxForm, Field } from 'redux-form';
+import { reduxForm, Field, FieldArray, formValueSelector } from 'redux-form';
 import { connect } from 'react-redux';
 
+import { Link } from 'react-router-dom';
+
 import { withStyles } from '@material-ui/core';
+import TextField from '@material-ui/core/TextField';
 import Input from '@material-ui/core/Input';
+
 import lightGreen from '@material-ui/core/colors/lightGreen';
+
 import { FormHelperText } from '@material-ui/core';
-import { FormControl, Radio, RadioGroup, FormControlLabel } from '@material-ui/core';
+import { FormControl, MenuItem } from '@material-ui/core';
 
 import Button from '@material-ui/core/Button';
+
+import { readForm } from '../actions';
+
+import firebase, { db } from '../../Firebase';
 
 const styles = theme => ({
     container: {
@@ -26,6 +35,10 @@ const styles = theme => ({
         flexDirection: 'column',
         padding: '0',
         margin: '0 auto',
+    },
+    contents: {
+        display: 'flex',
+        flexDirection: 'column',
     },
     head: {
         border: '.1rem solid #eee',
@@ -58,9 +71,50 @@ const styles = theme => ({
     },
 });
 
-const renderInputField =  ({
+const renderTitleField = withStyles(theme => ({
+    form: {
+        width: '100%',
+        height: '6rem',
+        marginTop: '1.6rem',
+    },
+    title: {
+        fontSize: '3.2rem',
+    },
+}))(
+    ({
+        input,
+        meta: { touched, error },
+        type='text',
+        classes,
+        required = false,
+    }) => (
+    <FormControl
+        className={classes.form}
+        required={required}
+        error={!!(touched && error)}
+    >
+        <TextField
+            className={classes.title}
+            error={!!(touched && error)}
+            type={type}
+            required={required}
+            { ...input }
+            helperText={touched && error}
+//            disableUnderline='true'
+            InputProps={{
+                classes: {
+                    input: classes.title,    
+                },
+            }}
+        />
+    </FormControl>
+    )
+)
+
+const renderInput =  ({
     input,
     label,
+    name,
     meta: { touched, error },
     type='text',
     required = false,
@@ -82,6 +136,7 @@ const renderInputField =  ({
             }}
             placeholder={label}
             label={label}
+            name={name}
             type={type}
             { ...input }
         />
@@ -89,13 +144,12 @@ const renderInputField =  ({
     </FormControl>
 )
 
-const renderRadio = ({
-    input: { value, onChange },
+const renderInputDisabled =  ({
+    input,
     label,
-    children,
+    name,
     meta: { touched, error },
-    onFieldChange,
-    row = true,
+    type='text',
     required = false,
     rootClass = '',
 }) => (
@@ -103,101 +157,252 @@ const renderRadio = ({
         classes={{root: rootClass}}
         required={required}
         error={!!(touched && error)}
-        style={{ width: '10rem' }}
+        style={{
+            width: '100%',
+            height: '4rem',
+            marginTop: '1.6rem',
+        }}
     >
-        <RadioGroup
-            row={row}
-            label={label}
-            value={value}
-            onChange={(e) => {
-                onChange(e.target.value)
-                onFieldChange && onFieldChange(e.target.value)
+        <Input
+            style={{
+                fontSize: '1.4rem',
             }}
-        >
-            {children}
-        </RadioGroup>
+            disabled
+            name={name}
+            placeholder={label}
+            label={label}
+            type={type}
+            { ...input }
+        />
         {touched && error && <FormHelperText>{error}</FormHelperText>}
     </FormControl>
 )
 
-class InputForm extends Component {
-    submit = (values) => {
-        console.log(values);
-    }
+const renderChoices = withStyles(theme => ({
+    choices: {
+        listStyle: 'none',
+        display: 'flex',
+    },
+}))(
+    ({
+        classes,
+        fields,
+        meta: { error }
+    }) => (
+        <ul style={{width: '100%', padding: '0'}}>
+            <li style={{listStyle: 'none'}}>
+                <Button
+                    className={classes.button}
+                    variant="outlined"
+                    color="primary"
+                    onClick={() => fields.push()}
+                >
+                    追加
+                </Button>
+            </li>
+            {fields.map((name, index) => (
+                <li key={index} className={classes.choices}>
+                    <div style={{lineHeight: '4rem', margin: '1.2rem 1rem 0 0'}}>○</div>
+                    <Field
+                        name={name}
+                        type="text"
+                        component={renderInput}
+                        label={`Choice #${index + 1}`}
+                    />
+                    <Button
+                        className={classes.button}
+                        style={{margin: '1rem .5rem'}}
+                        variant="outlined"
+                        color="primary"
+                        onClick={() => fields.remove(index)}
+                    >
+                        削除
+                    </Button>
+                </li>
+            ))}
+            {error && <li>{error}</li>}
+        </ul>
+    )
+)
 
-    render() {
-        const { classes, handleSubmit } = this.props;
-        return (
-            <React.Fragment>
-                <div className={classes.container}>
-                    <div className={classes.form}>
-                        <div className={classes.head}>
-                            <h3 className={classes.title}>広報アンケート</h3>
-                            <p className={classes.greed}>広報のネタ収集のため何でも書いてください</p>
-                        </div>
-                        <form onSubmit={handleSubmit(this.submit)}>
-                            <div className={classes.content}>
-                                <p>メールアドレス</p>
-                                <Field label="mail" name="mail" type="text" component={renderInputField} required />
-                            </div>
-                            <div className={classes.content}>
-                                <p>部署</p>
-                                <Field name="belong" component={renderRadio}>
-                                    <FormControlLabel value='営業部' control={<Radio />} label='営業部' />
-                                    <FormControlLabel value='経理部' control={<Radio />} label='経理部' />
-                                    <FormControlLabel value='経営企画部' control={<Radio />} label='経営企画部' />
-                                    <FormControlLabel value='人事部' control={<Radio />} label='人事部' />
-                                    <FormControlLabel value='総務部' control={<Radio />} label='総務部' />
-                                </Field>
-                            </div>
-                            <div className={classes.content}>
-                                <p>好きな趣味は何ですか？</p>
-                                <Field label="趣味" name="hobby" type="text" component={renderInputField} required />              
-                            </div>
-                            <div className={classes.content}>
-                                <p>最近ハマっていることは何ですか？</p>
-                                <Field label="interest" name="interest" type="text" component={renderInputField} required />              
-                            </div>
-                            <div className={classes.content}>
-                                <p>最近のニュースで気になることはありますか？</p>
-                                <Field label="latest news" name="latest_news" type="text" component={renderInputField} required />              
-                            </div>
-                            <div className={classes.content}>
-                                <p>最近読んだ面白い本があったら教えてください</p>
-                                <Field label="book" name="book" type="text" component={renderInputField} required />              
-                            </div>
-                            <div className={classes.content}>
-                                <p>最近見た映画や見たい映画があれば教えてください</p>
-                                <Field label="movie" name="movie" type="text" component={renderInputField} required />              
-                            </div>
-                            <div className={classes.content}>
-                                <p>あなたの最近のニュースを教えてください</p>
-                                <Field label="your news" name="your_news" type="text" component={renderInputField} required />              
-                            </div>
-                            <Button
-                                variant="outlined"
-                                color="primary"
-                                className={classes.button}
-                                type="submit"
-                            >
-                                回答する
-                            </Button>
-                        </form>
+const renderRadioQuery = withStyles(theme => ({
+    content: {
+        padding: '2.4rem',
+        border: '.1rem solid #eee',
+        borderRadius: '.8rem',
+        backgroundColor: '#fff', 
+        margin: '1rem auto',
+        fontSize: '1.6rem',
+        width: 'calc(100% - 4.8rem)',
+    },
+    choices: {
+        display: 'flex',
+    },
+}))( 
+    ({
+        classes,
+        rootClass = '',
+        index,
+    }) => (
+        <FormControl classs={{root: rootClass}}>
+            <div className={classes.content}>
+                <Field
+                    component={renderInput}
+                    name={`createForm.${index}.question`}
+                    label='質問'
+                />
+                <FieldArray name={`createForm.${index}.choices`} component={renderChoices} />
+            </div>
+    </FormControl>
+    )
+)
+
+const renderTextQuery = withStyles(theme => ({
+    content: {
+        padding: '2.4rem',
+        border: '.1rem solid #eee',
+        borderRadius: '.8rem',
+        backgroundColor: '#fff', 
+        margin: '1rem auto',
+        fontSize: '1.6rem',
+        width: 'calc(100% - 4.8rem)',
+    },
+}))(
+    ({
+        classes,
+        rootClass = '',
+        index,
+    }) => (
+        <FormControl classes={{root: rootClass}}>
+            <div className={classes.content}>
+                <Field
+                    component={renderInput}
+                    name={`createForm.${index}.question`}
+                />
+                <Field
+                    component={renderInputDisabled}
+                    name={`createForm.${index}.answer`}
+                    label={`回答(記述式)`}
+                />
+            </div>
+        </FormControl>
+    )
+)
+
+const renderTypeSelect = ({
+    input: { value, onChange },
+    label,
+    children,
+    meta: { touched, error },
+    onFieldChange,
+    required = false,
+    rootClass = '',
+}) => (
+    <TextField
+        required={required}
+        classes={{root: rootClass}}
+        select
+        label={label}
+        variant='outlined'
+        value={value}
+        onChange={e => {
+        onChange(e.target.value)
+        onFieldChange && onFieldChange(e.target.value)
+        }}
+        helperText={touched && error}
+    >
+       {children}
+    </TextField>
+)
+
+const renderQuery = withStyles(theme => ({
+    content: {
+        padding: '2.4rem',
+        border: '.1rem solid #eee',
+        borderRadius: '.8rem',
+        backgroundColor: '#fff',
+        margin: '1rem auto',
+        fontSize: '1.6rem',
+        width: 'calc(100% - 4.8rem)',
+    },
+}))(
+    ({
+        fields,
+        classes,
+        rootClass = '',
+        createFormValue,
+    }) => (
+        <FormControl classes={{root: rootClass}}>
+            {fields.map((name, index) => {
+                return (
+                    <div key={index} className={classes.content}>
+                        <Field name={`createForm.${index}.type`} component={renderTypeSelect}>
+                            <MenuItem value=''>未選択</MenuItem>
+                            <MenuItem value='text_query'>テキスト</MenuItem>
+                            <MenuItem value='radio_query'>ラジオ</MenuItem>
+                        </Field>
+                        {createFormValue[index].type === 'text_query' && (
+                            <Field name={`createForm.${index}.question`} index={index} component={renderTextQuery} />
+                        )}
+                        {createFormValue[index].type === 'radio_query' && (
+                            <Field name={`createForm.${index}.question`} index={index} component={renderRadioQuery} />
+                        )}
+                        <Button onClick={() => fields.remove(index)}>削除</Button>
                     </div>
+                )
+            })}
+            <div>
+                <Button
+                    variant="outlined"
+                    color="primary"
+                    style={{backgroundColor: '#fff'}}
+                    onClick={() => fields.push({})}
+                >
+                    質問を追加
+                </Button>
+            </div>
+        </FormControl>
+    )
+)
+
+class CreateFormValuesForm extends Component {
+    render() {
+        console.log(this.props.values)
+        const { classes, fields, handleSubmit, createFormValue } = this.props;
+        return (
+            <div className={classes.container}>
+                <div className={classes.form}>
+                    <form className={classes.contents}>
+                        <div className={classes.head}>
+                            <Field label="タイトル" name="title" type="text" component={renderTitleField} />
+                        </div>
+                        <Link to='/create_form'>戻る</Link>
+                    </form>
                 </div>
-            </React.Fragment>
+            </div>
         );
     }
 }
 
-InputForm = reduxForm({
-    form: 'form'
-})(InputForm);
+CreateFormValuesForm = reduxForm({
+    form: 'createFormValues'
+})(CreateFormValuesForm)
+
+const selector = formValueSelector('createFormValues')
+CreateFormValuesForm = connect(state => {
+    const createFormValue = selector(state, 'createForm')
+    return {
+        createFormValue,
+    }
+})(CreateFormValuesForm)
+
+const mapStateToProps = state => ({values: state.values})
+const mapDispatchToProps = ({ readForm })
 
 export default compose(
     withStyles(styles),
     connect(
-        null,
-        null
+        mapStateToProps,
+        mapDispatchToProps
     )
-)(InputForm)
+)(CreateFormValuesForm)

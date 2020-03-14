@@ -4,13 +4,17 @@ import { compose } from 'redux';
 import { reduxForm, Field, FieldArray, formValueSelector } from 'redux-form';
 import { connect } from 'react-redux';
 
+import { withRouter } from 'react-router';
+import { Link } from 'react-router-dom';
+
 import { withStyles } from '@material-ui/core';
 import TextField from '@material-ui/core/TextField';
 import Input from '@material-ui/core/Input';
 
 import lightGreen from '@material-ui/core/colors/lightGreen';
+
 import { FormHelperText } from '@material-ui/core';
-import { FormControl, Radio, RadioGroup, FormControlLabel, MenuItem } from '@material-ui/core';
+import { FormControl, MenuItem } from '@material-ui/core';
 
 import Button from '@material-ui/core/Button';
 
@@ -192,7 +196,7 @@ const renderChoices = withStyles(theme => ({
                     color="primary"
                     onClick={() => fields.push()}
                 >
-                    Add Choice
+                    追加
                 </Button>
             </li>
             {fields.map((name, index) => (
@@ -237,16 +241,16 @@ const renderRadioQuery = withStyles(theme => ({
     ({
         classes,
         rootClass = '',
-        id,
+        index,
     }) => (
         <FormControl classs={{root: rootClass}}>
             <div className={classes.content}>
                 <Field
                     component={renderInput}
-                    name={`createForm.${id}.question`}
+                    name={`createForm.${index}.question`}
                     label='質問'
                 />
-                <FieldArray name={`createForm.${id}.choices`} component={renderChoices} />
+                <FieldArray name={`createForm.${index}.choices`} component={renderChoices} />
             </div>
     </FormControl>
     )
@@ -266,17 +270,17 @@ const renderTextQuery = withStyles(theme => ({
     ({
         classes,
         rootClass = '',
-        id,
+        index,
     }) => (
         <FormControl classes={{root: rootClass}}>
             <div className={classes.content}>
                 <Field
                     component={renderInput}
-                    name={`createForm.${id}.question`}
+                    name={`createForm.${index}.question`}
                 />
                 <Field
                     component={renderInputDisabled}
-                    name={`createForm.${id}.answer`}
+                    name={`createForm.${index}.answer`}
                     label={`回答(記述式)`}
                 />
             </div>
@@ -328,21 +332,21 @@ const renderQuery = withStyles(theme => ({
         createFormValue,
     }) => (
         <FormControl classes={{root: rootClass}}>
-            {fields.map((name, id) => {
+            {fields.map((name, index) => {
                 return (
-                    <div key={id} className={classes.content}>
-                        <Field name={`createForm.${id}.type`} component={renderTypeSelect}>
+                    <div key={index} className={classes.content}>
+                        <Field name={`createForm.${index}.type`} component={renderTypeSelect}>
                             <MenuItem value=''>未選択</MenuItem>
                             <MenuItem value='text_query'>テキスト</MenuItem>
                             <MenuItem value='radio_query'>ラジオ</MenuItem>
                         </Field>
-                        {createFormValue[id].type === 'text_query' && (
-                            <Field name={`createForm.${id}.question`} id={id} component={renderTextQuery} />
+                        {createFormValue[index].type === 'text_query' && (
+                            <Field name={`createForm.${index}.question`} index={index} component={renderTextQuery} />
                         )}
-                        {createFormValue[id].type === 'radio_query' && (
-                            <Field name={`createForm.${id}.question`} id={id} component={renderRadioQuery} />
+                        {createFormValue[index].type === 'radio_query' && (
+                            <Field name={`createForm.${index}.question`} index={index} component={renderRadioQuery} />
                         )}
-                        <Button onClick={() => fields.remove(id)}>削除</Button>
+                        <Button onClick={() => fields.remove(index)}>削除</Button>
                     </div>
                 )
             })}
@@ -366,9 +370,12 @@ class CreateFormValuesForm extends Component {
         this.props.initialize({
             title: '広報アンケート',
         })
+        this.submit = this.submit.bind(this)
     }
     submit(values) {
-        console.log(values);
+        const { dispatch } = this.props
+        dispatch({type: 'CREATE_FORM_REQUESTED', payload: {values}})
+        this.props.history.push('/form')
     }
 
     render() {
@@ -398,10 +405,10 @@ class CreateFormValuesForm extends Component {
 }
 
 CreateFormValuesForm = reduxForm({
-    form: 'createFormValues' // a unique identifier for this form
+    form: 'createFormValues'
 })(CreateFormValuesForm)
 
-const selector = formValueSelector('createFormValues') // <-- same as form name
+const selector = formValueSelector('createFormValues')
 CreateFormValuesForm = connect(state => {
     const createFormValue = selector(state, 'createForm')
     return {

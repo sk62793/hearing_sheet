@@ -7,16 +7,16 @@ import * as serviceWorker from './serviceWorker';
 import { createMuiTheme, MuiThemeProvider } from '@material-ui/core/styles';
 import green from '@material-ui/core/colors/green';
 
-import { createStore } from 'redux';
+import { createStore, applyMiddleware, compose } from 'redux';
+import { composeWithDevTools } from 'redux-devtools-extension'
+
 import { Provider } from 'react-redux';
 import reducer from './components/reducers';
 
+import configureStore from './configureStore';
 import { BrowserRouter as Router } from 'react-router-dom';
 
-const store = createStore(
-    reducer,
-    window.__REDUX_DEVTOOLS_EXTENSION__ &&window.__REDUX_DEVTOOLS_EXTENSION__()
-);
+const store = configureStore();
 
 const theme = createMuiTheme({
     palette: {
