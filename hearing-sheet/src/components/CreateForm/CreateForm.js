@@ -195,11 +195,11 @@ const renderChoices = withStyles(theme => ({
                     Add Choice
                 </Button>
             </li>
-            {fields.map((choice, index) => (
+            {fields.map((name, index) => (
                 <li key={index} className={classes.choices}>
                     <div style={{lineHeight: '4rem', margin: '1.2rem 1rem 0 0'}}>○</div>
                     <Field
-                        name={choice}
+                        name={name}
                         type="text"
                         component={renderInput}
                         label={`Choice #${index + 1}`}
@@ -235,34 +235,20 @@ const renderRadioQuery = withStyles(theme => ({
     },
 }))( 
     ({
-        fields,
         classes,
         rootClass = '',
+        id,
     }) => (
         <FormControl classs={{root: rootClass}}>
-        {fields.map((name, q_id) => (
-            <div key={q_id} className={classes.content}>
+            <div className={classes.content}>
                 <Field
                     component={renderInput}
-                    name={`${name}.question`}
+                    name={`createForm.${id}.question`}
                     label='質問'
                 />
-                <FieldArray name={`${name}.choice`} component={renderChoices} />
-                <Button onClick={() => fields.remove(q_id)}>削除</Button>
+                <FieldArray name={`createForm.${id}.choices`} component={renderChoices} />
             </div>
-        ))}
-        <div>
-            <Button
-                variant="outlined"
-                color="primary"
-                style={{backgroundColor: '#fff'}}
-                onClick={() => fields.push({})}
-            >
-                選択肢式の質問を追加
-            </Button>
-        </div>
     </FormControl>
-
     )
 )
 
@@ -278,41 +264,27 @@ const renderTextQuery = withStyles(theme => ({
     },
 }))(
     ({
-        fields,
         classes,
         rootClass = '',
+        id,
     }) => (
         <FormControl classes={{root: rootClass}}>
-            {fields.map((name, id) => (
-                <div key={id} className={classes.content}>
-                    <Field
-                        component={renderInput}
-                        name={`${name}.question`}
-                        label={`質問 #${id}`}
-                    />
-                    <Field
-                        component={renderInputDisabled}
-                        name={`${name}.answer`}
-                        label={`回答(記述式)`}
-                    />
-                    <Button onClick={() => fields.remove(id)}>削除</Button>
-                </div>
-            ))}
-            <div>
-                <Button
-                    variant="outlined"
-                    color="primary"
-                    style={{backgroundColor: '#fff'}}
-                    onClick={() => fields.push({})}
-                >
-                    記述式の質問を追加
-                </Button>
+            <div className={classes.content}>
+                <Field
+                    component={renderInput}
+                    name={`createForm.${id}.question`}
+                />
+                <Field
+                    component={renderInputDisabled}
+                    name={`createForm.${id}.answer`}
+                    label={`回答(記述式)`}
+                />
             </div>
         </FormControl>
     )
 )
 
-const renderSelect = ({
+const renderTypeSelect = ({
     input: { value, onChange },
     label,
     children,
@@ -338,26 +310,55 @@ const renderSelect = ({
     </TextField>
 )
 
-{/*質問のコンポーネントとしてあとから使いたい
-let renderQuery = props => {
-    const {
+const renderQuery = withStyles(theme => ({
+    content: {
+        padding: '2.4rem',
+        border: '.1rem solid #eee',
+        borderRadius: '.8rem',
+        backgroundColor: '#fff',
+        margin: '1rem auto',
+        fontSize: '1.6rem',
+        width: 'calc(100% - 4.8rem)',
+    },
+}))(
+    ({
+        fields,
+        classes,
+        rootClass = '',
         createFormValue,
-    } = props;
-    console.log(createFormValue)
-    return (
-        <FormControl>
-            <Field name='createForm' id='createForm' component={renderSelect}>
-                <MenuItem value=''>未選択</MenuItem>
-                <MenuItem value='renderTextQuery'>テキスト</MenuItem>
-                <MenuItem value='renderRadioQuery'>ラジオ</MenuItem>
-            </Field>
-            {createFormValue === 'renderTextQuery' && (
-                <div><p>わっしょい</p></div>
-            )}
+    }) => (
+        <FormControl classes={{root: rootClass}}>
+            {fields.map((name, id) => {
+                return (
+                    <div key={id} className={classes.content}>
+                        <Field name={`createForm.${id}.type`} component={renderTypeSelect}>
+                            <MenuItem value=''>未選択</MenuItem>
+                            <MenuItem value='text_query'>テキスト</MenuItem>
+                            <MenuItem value='radio_query'>ラジオ</MenuItem>
+                        </Field>
+                        {createFormValue[id].type === 'text_query' && (
+                            <Field name={`createForm.${id}.question`} id={id} component={renderTextQuery} />
+                        )}
+                        {createFormValue[id].type === 'radio_query' && (
+                            <Field name={`createForm.${id}.question`} id={id} component={renderRadioQuery} />
+                        )}
+                        <Button onClick={() => fields.remove(id)}>削除</Button>
+                    </div>
+                )
+            })}
+            <div>
+                <Button
+                    variant="outlined"
+                    color="primary"
+                    style={{backgroundColor: '#fff'}}
+                    onClick={() => fields.push({})}
+                >
+                    質問を追加
+                </Button>
+            </div>
         </FormControl>
     )
-}
-*/}
+)
 
 class CreateFormValuesForm extends Component {
     constructor(props) {
@@ -372,7 +373,6 @@ class CreateFormValuesForm extends Component {
 
     render() {
         const { classes, fields, handleSubmit, createFormValue } = this.props;
-        console.log(createFormValue)
         return (
             <div className={classes.container}>
                 <div className={classes.form}>
@@ -381,6 +381,7 @@ class CreateFormValuesForm extends Component {
                             <Field label="タイトル" name="title" type="text" component={renderTitleField} required />
                             <Field label="フォームの説明" name="description" type="text" component={renderInput} required />
                         </div>
+                        <FieldArray name='createForm' createFormValue={createFormValue} component={renderQuery} />
                         <Button
                             variant="outlined"
                             color="primary"
@@ -389,20 +390,7 @@ class CreateFormValuesForm extends Component {
                         >
                             送信する
                         </Button>
-                        <FormControl>
-                            <Field name='createForm' id='createForm' component={renderSelect}>
-                                <MenuItem value=''>未選択</MenuItem>
-                                <MenuItem value='text_query'>テキスト</MenuItem>
-                                <MenuItem value='radio_query'>ラジオ</MenuItem>
-                            </Field>
-                            {createFormValue === 'text_query' && (
-                                <FieldArray name='text_query' component={renderTextQuery} />
-                            )}
-                            {createFormValue === 'radio_query' && (
-                                <FieldArray name='radio_query' component={renderRadioQuery} />
-                            )}
-                        </FormControl>
-                    </form>        
+                    </form>
                 </div>
             </div>
         );
