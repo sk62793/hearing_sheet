@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 
 import { compose } from 'redux';
-import { reduxForm, Field, FieldArray } from 'redux-form';
+import { reduxForm, Field, FieldArray, formValueSelector } from 'redux-form';
 import { connect } from 'react-redux';
 
 import { withStyles } from '@material-ui/core';
@@ -10,7 +10,7 @@ import Input from '@material-ui/core/Input';
 
 import lightGreen from '@material-ui/core/colors/lightGreen';
 import { FormHelperText } from '@material-ui/core';
-import { FormControl, Radio, RadioGroup, FormControlLabel } from '@material-ui/core';
+import { FormControl, Radio, RadioGroup, FormControlLabel, MenuItem } from '@material-ui/core';
 
 import Button from '@material-ui/core/Button';
 
@@ -310,9 +310,56 @@ const renderTextQuery = withStyles(theme => ({
             </div>
         </FormControl>
     )
-)   
+)
 
-class CreateForm extends Component {
+const renderSelect = ({
+    input: { value, onChange },
+    label,
+    children,
+    meta: { touched, error },
+    onFieldChange,
+    required = false,
+    rootClass = '',
+}) => (
+    <TextField
+        required={required}
+        classes={{root: rootClass}}
+        select
+        label={label}
+        variant='outlined'
+        value={value}
+        onChange={e => {
+        onChange(e.target.value)
+        onFieldChange && onFieldChange(e.target.value)
+        }}
+        helperText={touched && error}
+    >
+       {children}
+    </TextField>
+)
+
+{/*質問のコンポーネントとしてあとから使いたい
+let renderQuery = props => {
+    const {
+        createFormValue,
+    } = props;
+    console.log(createFormValue)
+    return (
+        <FormControl>
+            <Field name='createForm' id='createForm' component={renderSelect}>
+                <MenuItem value=''>未選択</MenuItem>
+                <MenuItem value='renderTextQuery'>テキスト</MenuItem>
+                <MenuItem value='renderRadioQuery'>ラジオ</MenuItem>
+            </Field>
+            {createFormValue === 'renderTextQuery' && (
+                <div><p>わっしょい</p></div>
+            )}
+        </FormControl>
+    )
+}
+*/}
+
+class CreateFormValuesForm extends Component {
     constructor(props) {
         super(props);
         this.props.initialize({
@@ -324,7 +371,8 @@ class CreateForm extends Component {
     }
 
     render() {
-        const { classes, handleSubmit } = this.props;
+        const { classes, fields, handleSubmit, createFormValue } = this.props;
+        console.log(createFormValue)
         return (
             <div className={classes.container}>
                 <div className={classes.form}>
@@ -333,8 +381,6 @@ class CreateForm extends Component {
                             <Field label="タイトル" name="title" type="text" component={renderTitleField} required />
                             <Field label="フォームの説明" name="description" type="text" component={renderInput} required />
                         </div>
-                        <FieldArray name="radio_query" component={renderRadioQuery} rootClass={classes.formControl} />
-                        <FieldArray name='text_query' component={renderTextQuery} rootClass={classes.formControl} />
                         <Button
                             variant="outlined"
                             color="primary"
@@ -343,6 +389,19 @@ class CreateForm extends Component {
                         >
                             送信する
                         </Button>
+                        <FormControl>
+                            <Field name='createForm' id='createForm' component={renderSelect}>
+                                <MenuItem value=''>未選択</MenuItem>
+                                <MenuItem value='text_query'>テキスト</MenuItem>
+                                <MenuItem value='radio_query'>ラジオ</MenuItem>
+                            </Field>
+                            {createFormValue === 'text_query' && (
+                                <FieldArray name='text_query' component={renderTextQuery} />
+                            )}
+                            {createFormValue === 'radio_query' && (
+                                <FieldArray name='radio_query' component={renderRadioQuery} />
+                            )}
+                        </FormControl>
                     </form>        
                 </div>
             </div>
@@ -350,9 +409,17 @@ class CreateForm extends Component {
     }
 }
 
-CreateForm = reduxForm({
-    form: 'form'
-})(CreateForm);
+CreateFormValuesForm = reduxForm({
+    form: 'createFormValues' // a unique identifier for this form
+})(CreateFormValuesForm)
+
+const selector = formValueSelector('createFormValues') // <-- same as form name
+CreateFormValuesForm = connect(state => {
+    const createFormValue = selector(state, 'createForm')
+    return {
+        createFormValue,
+    }
+})(CreateFormValuesForm)
 
 const mapDispatchToProps = ({ createForm })
 
@@ -362,4 +429,4 @@ export default compose(
         null,
         mapDispatchToProps
     )
-)(CreateForm)
+)(CreateFormValuesForm)
