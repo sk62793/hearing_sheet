@@ -4,9 +4,6 @@ import { compose } from 'redux';
 import { reduxForm, Field, FieldArray, formValueSelector } from 'redux-form';
 import { connect } from 'react-redux';
 
-import { withRouter } from 'react-router';
-import { Link } from 'react-router-dom';
-
 import { withStyles } from '@material-ui/core';
 import TextField from '@material-ui/core/TextField';
 import Input from '@material-ui/core/Input';
@@ -18,7 +15,7 @@ import { FormControl, MenuItem } from '@material-ui/core';
 
 import Button from '@material-ui/core/Button';
 
-import { createForm } from '../actions';
+import { createFormRequest } from '../actions';
 
 const styles = theme => ({
     container: {
@@ -34,10 +31,12 @@ const styles = theme => ({
         flexDirection: 'column',
         padding: '0',
         margin: '0 auto',
+        position: 'relative',
     },
     contents: {
         display: 'flex',
         flexDirection: 'column',
+        width: '95%',
     },
     head: {
         border: '.1rem solid #eee',
@@ -45,28 +44,9 @@ const styles = theme => ({
         borderRadius: '.8rem',
         padding: '2.2rem 2.2rem 2.4rem',
     },
-    title: {
-        fontSize: '3.2rem',
-        fontWeight: '500',
-        margin: '.1rem 0',
-    },
     greed: {
         fontSize: '1.2rem',
         marginTop: '1.2rem',
-    },
-    content: {
-        padding: '2.4rem',
-        border: '.1rem solid #eee',
-        borderRadius: '.8rem',
-        backgroundColor: '#fff', 
-        margin: '1rem auto',
-        fontSize: '1.6rem',
-    },
-    button: {
-        backgroundColor: '#fff',
-        padding: ' 1rem 2rem',
-        fontSize: '1.4rem',
-
     },
 });
 
@@ -78,6 +58,8 @@ const renderTitleField = withStyles(theme => ({
     },
     title: {
         fontSize: '3.2rem',
+        fontWeight: '500',
+        margin: '.1rem 0',
     },
 }))(
     ({
@@ -99,7 +81,6 @@ const renderTitleField = withStyles(theme => ({
             required={required}
             { ...input }
             helperText={touched && error}
-//            disableUnderline='true'
             InputProps={{
                 classes: {
                     input: classes.title,    
@@ -118,6 +99,7 @@ const renderInput =  ({
     type='text',
     required = false,
     rootClass = '',
+    disabled,
 }) => (
     <FormControl
         classes={{root: rootClass}}
@@ -137,40 +119,7 @@ const renderInput =  ({
             label={label}
             name={name}
             type={type}
-            { ...input }
-        />
-        {touched && error && <FormHelperText>{error}</FormHelperText>}
-    </FormControl>
-)
-
-const renderInputDisabled =  ({
-    input,
-    label,
-    name,
-    meta: { touched, error },
-    type='text',
-    required = false,
-    rootClass = '',
-}) => (
-    <FormControl
-        classes={{root: rootClass}}
-        required={required}
-        error={!!(touched && error)}
-        style={{
-            width: '100%',
-            height: '4rem',
-            marginTop: '1.6rem',
-        }}
-    >
-        <Input
-            style={{
-                fontSize: '1.4rem',
-            }}
-            disabled
-            name={name}
-            placeholder={label}
-            label={label}
-            type={type}
+            disabled={disabled}
             { ...input }
         />
         {touched && error && <FormHelperText>{error}</FormHelperText>}
@@ -243,7 +192,7 @@ const renderRadioQuery = withStyles(theme => ({
         rootClass = '',
         index,
     }) => (
-        <FormControl classs={{root: rootClass}}>
+        <FormControl classs={{root: rootClass}} style={{width: '85%', marginRight: '1rem'}}>
             <div className={classes.content}>
                 <Field
                     component={renderInput}
@@ -272,16 +221,17 @@ const renderTextQuery = withStyles(theme => ({
         rootClass = '',
         index,
     }) => (
-        <FormControl classes={{root: rootClass}}>
-            <div className={classes.content}>
+        <FormControl classes={{root: rootClass}} style={{width: '85%', marginRight: '1rem'}}>
+            <div className={classes.content} >
                 <Field
                     component={renderInput}
                     name={`createForm.${index}.question`}
                 />
                 <Field
-                    component={renderInputDisabled}
+                    component={renderInput}
                     name={`createForm.${index}.answer`}
                     label={`回答(記述式)`}
+                    disabled={true}
                 />
             </div>
         </FormControl>
@@ -314,15 +264,16 @@ const renderTypeSelect = ({
     </TextField>
 )
 
-const renderQuery = withStyles(theme => ({
+const createQuery = withStyles(theme => ({
     content: {
         padding: '2.4rem',
         border: '.1rem solid #eee',
         borderRadius: '.8rem',
         backgroundColor: '#fff',
-        margin: '1rem auto',
+        margin: '1rem auto 0',
         fontSize: '1.6rem',
         width: 'calc(100% - 4.8rem)',
+        display: 'flex',
     },
 }))(
     ({
@@ -335,18 +286,28 @@ const renderQuery = withStyles(theme => ({
             {fields.map((name, index) => {
                 return (
                     <div key={index} className={classes.content}>
-                        <Field name={`createForm.${index}.type`} component={renderTypeSelect}>
-                            <MenuItem value=''>未選択</MenuItem>
-                            <MenuItem value='text_query'>テキスト</MenuItem>
-                            <MenuItem value='radio_query'>ラジオ</MenuItem>
-                        </Field>
                         {createFormValue[index].type === 'text_query' && (
                             <Field name={`createForm.${index}.question`} index={index} component={renderTextQuery} />
                         )}
                         {createFormValue[index].type === 'radio_query' && (
                             <Field name={`createForm.${index}.question`} index={index} component={renderRadioQuery} />
                         )}
-                        <Button onClick={() => fields.remove(index)}>削除</Button>
+                        <div style={{display: 'flex', flexDirection: 'column', margin: '1rem 0'}}>
+                            <Field name={`createForm.${index}.type`} component={renderTypeSelect}>
+                                <MenuItem value=''>未選択</MenuItem>
+                                <MenuItem value='text_query'>テキスト</MenuItem>
+                                <MenuItem value='radio_query'>ラジオ</MenuItem>
+                            </Field>
+                            <Button
+                                variant="outlined"
+                                color="primary"
+                                style={{backgroundColor: '#fff', marginTop: '2rem'}}
+                                className={classes.button}
+                                onClick={() => fields.remove(index)}
+                            >
+                                削除
+                            </Button>
+                        </div>
                     </div>
                 )
             })}
@@ -354,7 +315,14 @@ const renderQuery = withStyles(theme => ({
                 <Button
                     variant="outlined"
                     color="primary"
-                    style={{backgroundColor: '#fff'}}
+                    style={{
+                        backgroundColor: '#fff',
+                        position: 'fixed',
+                        right: '10rem',
+                        top: '15rem',
+                        zIndex: '10',
+                        padding: '1.5rem'
+                    }}
                     onClick={() => fields.push({})}
                 >
                     質問を追加
@@ -364,22 +332,22 @@ const renderQuery = withStyles(theme => ({
     )
 )
 
-class CreateFormValuesForm extends Component {
+class CreateForm extends Component {
     constructor(props) {
         super(props);
         this.props.initialize({
             title: '広報アンケート',
+            createForm: [],
         })
         this.submit = this.submit.bind(this)
     }
     submit(values) {
-        const { dispatch } = this.props
-        dispatch({type: 'CREATE_FORM_REQUESTED', payload: {values}})
-        this.props.history.push('/form')
+        this.props.createFormRequest(values)
+        //this.props.history.push('/amswer_form')
     }
 
     render() {
-        const { classes, fields, handleSubmit, createFormValue } = this.props;
+        const { classes, handleSubmit, createFormValue } = this.props;
         return (
             <div className={classes.container}>
                 <div className={classes.form}>
@@ -388,14 +356,17 @@ class CreateFormValuesForm extends Component {
                             <Field label="タイトル" name="title" type="text" component={renderTitleField} required />
                             <Field label="フォームの説明" name="description" type="text" component={renderInput} required />
                         </div>
-                        <FieldArray name='createForm' createFormValue={createFormValue} component={renderQuery} />
+                        <FieldArray name='createForm' createFormValue={createFormValue} component={createQuery} />
                         <Button
                             variant="outlined"
                             color="primary"
                             className={classes.button}
                             type="submit"
+                            style={{
+                                marginTop: '1rem'
+                            }}
                         >
-                            送信する
+                            保存
                         </Button>
                     </form>
                 </div>
@@ -404,19 +375,19 @@ class CreateFormValuesForm extends Component {
     }
 }
 
-CreateFormValuesForm = reduxForm({
+CreateForm = reduxForm({
     form: 'createFormValues'
-})(CreateFormValuesForm)
+})(CreateForm)
 
 const selector = formValueSelector('createFormValues')
-CreateFormValuesForm = connect(state => {
+CreateForm = connect(state => {
     const createFormValue = selector(state, 'createForm')
     return {
         createFormValue,
     }
-})(CreateFormValuesForm)
+})(CreateForm)
 
-const mapDispatchToProps = ({ createForm })
+const mapDispatchToProps = ({ createFormRequest })
 
 export default compose(
     withStyles(styles),
@@ -424,4 +395,4 @@ export default compose(
         null,
         mapDispatchToProps
     )
-)(CreateFormValuesForm)
+)(CreateForm)

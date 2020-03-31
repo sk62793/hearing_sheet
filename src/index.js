@@ -7,16 +7,26 @@ import * as serviceWorker from './serviceWorker';
 import { createMuiTheme, MuiThemeProvider } from '@material-ui/core/styles';
 import green from '@material-ui/core/colors/green';
 
-import { createStore, applyMiddleware, compose } from 'redux';
-import { composeWithDevTools } from 'redux-devtools-extension'
-
 import { Provider } from 'react-redux';
-import reducer from './components/reducers';
 
 import configureStore from './configureStore';
 import { BrowserRouter as Router } from 'react-router-dom';
 
+import firebase from 'firebase/app';
+import 'firebase/firestore';
+import 'firebase/auth';
+
+import { ReactReduxFirebaseProvider } from 'react-redux-firebase';
+import { createFirestoreInstance } from 'redux-firestore';
+
 const store = configureStore();
+const rrfConfig = {}
+const rrfProps = {
+    firebase,
+    config: rrfConfig,
+    dispatch: store.dispatch,
+    createFirestoreInstance
+}
 
 const theme = createMuiTheme({
     palette: {
@@ -29,11 +39,13 @@ const theme = createMuiTheme({
 
 ReactDOM.render(
     <Provider store={store}>
-        <MuiThemeProvider theme={theme}>
-            <Router>
-                <App />
-            </Router>
-        </MuiThemeProvider>
+        <ReactReduxFirebaseProvider {...rrfProps}>
+            <MuiThemeProvider theme={theme}>
+                <Router>
+                    <App />
+                </Router>
+            </MuiThemeProvider>
+        </ReactReduxFirebaseProvider>
     </Provider>
     , document.getElementById('root'));
 

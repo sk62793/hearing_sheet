@@ -1,9 +1,15 @@
 import { combineReducers } from 'redux'
 import { reducer as form } from 'redux-form'
-import events from './events.js'
+import sendFormReducer from './sendForm.js'
+import sendAnswerReducer from './sendForm.js'
+import { firebaseReducer } from 'react-redux-firebase';
+import { firestoreReducer } from 'redux-firestore';
 
 const reducer = combineReducers({
-    events,
+    firebase: firebaseReducer,
+    firestore: firestoreReducer,
+    sendFormReducer,
+    sendAnswerReducer,
     form
 });
 
