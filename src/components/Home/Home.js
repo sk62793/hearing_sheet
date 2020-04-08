@@ -28,22 +28,24 @@ class Home extends Component {
                     <div className={classes.title}>
                         <h2>広報アンケート</h2>
                     </div>
-                    <Button
-                        variant="outlined"
-                        color="primary"
-                        href="/form"
-                        className={classes.button}
-                    >
-                        回答する
-                    </Button>
-                    <Button
-                        variant="outlined"
-                        color="primary"
-                        href="/create_form"
-                        className={classes.button}
-                    >
-                        作成する
-                    </Button>
+                    <div>
+                        <Button
+                            variant="outlined"
+                            color="primary"
+                            href="/form"
+                            className={classes.button}
+                        >
+                            回答する
+                        </Button>
+                        <Button
+                            variant="outlined"
+                            color="primary"
+                            href="/signin"
+                            className={classes.button}
+                        >
+                            登録する
+                        </Button>
+                    </div>                  
                 </Container>
             </React.Fragment>
         );

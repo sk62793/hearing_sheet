@@ -11,6 +11,7 @@ import { Provider } from 'react-redux';
 
 import configureStore from './configureStore';
 import { BrowserRouter as Router } from 'react-router-dom';
+import history from './History';
 
 import firebase from 'firebase/app';
 import 'firebase/firestore';
@@ -18,6 +19,7 @@ import 'firebase/auth';
 
 import { ReactReduxFirebaseProvider } from 'react-redux-firebase';
 import { createFirestoreInstance } from 'redux-firestore';
+
 
 const store = configureStore();
 const rrfConfig = {}
@@ -28,7 +30,7 @@ const rrfProps = {
     createFirestoreInstance
 }
 
-const theme = createMuiTheme({
+export const theme = createMuiTheme({
     palette: {
         type: 'light',
         primary: {
@@ -41,7 +43,7 @@ ReactDOM.render(
     <Provider store={store}>
         <ReactReduxFirebaseProvider {...rrfProps}>
             <MuiThemeProvider theme={theme}>
-                <Router>
+                <Router history={history}>
                     <App />
                 </Router>
             </MuiThemeProvider>
