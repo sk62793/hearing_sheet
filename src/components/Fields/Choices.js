@@ -25,7 +25,7 @@ export const Choices = withStyles(theme => ({
                     color="primary"
                     onClick={() => fields.push()}
                 >
-                    追加
+                    選択肢を追加
                 </Button>
             </li>
             {fields.map((name, index) => (

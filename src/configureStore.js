@@ -3,8 +3,8 @@ import { reduxFirestore } from 'redux-firestore';
 import firebase from 'firebase/app';
 import { firebaseConfig } from './Firebase';
 import createSagaMiddleware from 'redux-saga';
-import reducer from './components/reducers';
-import rootSaga from './sagas';
+import reducer from './reducers';
+import rootSaga from './sagas/index.js';
 import { composeWithDevTools } from 'redux-devtools-extension';
 
 export default function configureStore(initialState) {

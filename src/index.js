@@ -1,22 +1,19 @@
+import 'react-app-polyfill/ie11'
+import 'react-app-polyfill/stable'
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
-
 import { createMuiTheme, MuiThemeProvider } from '@material-ui/core/styles';
 import green from '@material-ui/core/colors/green';
-
 import { Provider } from 'react-redux';
-
 import configureStore from './configureStore';
 import { BrowserRouter as Router } from 'react-router-dom';
 import history from './History';
-
 import firebase from 'firebase/app';
 import 'firebase/firestore';
 import 'firebase/auth';
-
 import { ReactReduxFirebaseProvider } from 'react-redux-firebase';
 import { createFirestoreInstance } from 'redux-firestore';
 
