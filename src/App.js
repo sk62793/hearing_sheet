@@ -3,19 +3,19 @@ import './App.css';
 
 import { Route, Switch } from 'react-router-dom';
 
-import Home from './components/Home/Home.jsx';
-import Form from './components/Form/Form.jsx';
-import CreateForm from './components/CreateForm/CreateForm.js';
+import AnswerPage from './pages/Briefing/Answer.js';
+import EditPage from './pages/Briefing/Edit.js';
+import FormList from './pages/Briefing/FormList.js';
 
 class App extends Component {
   render() {
     return (
       <React.Fragment>
         <Switch>
-            <Route exact path="/" component={Home} />
-            <Route exact path="/form" component={Form} />
-            <Route exact path="/create_form" component={CreateForm} />
-            <Route exact path="/complete" />
+            <Route exact path="/" component={FormList} />
+            <Route exact path="/forms" component={FormList} />
+            <Route exact path="/answer" component={AnswerPage} />
+            <Route exact path="/edit" component={EditPage} />
         </Switch>
       </React.Fragment>
     )
