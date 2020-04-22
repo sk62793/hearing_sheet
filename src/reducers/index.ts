@@ -1,7 +1,7 @@
 import { combineReducers } from 'redux'
 import { reducer as form } from 'redux-form'
-import sendAnswerReducer from './sendAnswer.js'
-import updateBriefingFormReducer from './updateBriefingForm.js'
+import sendAnswerReducer from './sendAnswer'
+import updateBriefingFormReducer from './updateBriefingForm'
 import { firebaseReducer } from 'react-redux-firebase';
 import { firestoreReducer } from 'redux-firestore';
 

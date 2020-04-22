@@ -1,9 +1,9 @@
 import {
     REQUEST_UPDATE_BRIEFING_FORM,
     SUCCESS_UPDATE_BRIEFING_FORM,
-} from '../actions/index.js';
+} from '../actions';
 
-export default function updateBriefingFormReducer (values = {}, action) {
+export default function updateBriefingFormReducer (values = {}, action: any) {
     switch (action.type) {
         case REQUEST_UPDATE_BRIEFING_FORM:
             return values;

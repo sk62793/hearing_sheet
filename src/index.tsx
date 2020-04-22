@@ -10,15 +10,15 @@ import green from '@material-ui/core/colors/green';
 import { Provider } from 'react-redux';
 import configureStore from './configureStore';
 import { BrowserRouter as Router } from 'react-router-dom';
-import history from './History';
 import firebase from 'firebase/app';
 import 'firebase/firestore';
 import 'firebase/auth';
 import { ReactReduxFirebaseProvider } from 'react-redux-firebase';
 import { createFirestoreInstance } from 'redux-firestore';
 
+const initialState:any = {}
 
-const store = configureStore();
+const store = configureStore(initialState);
 const rrfConfig = {}
 const rrfProps = {
     firebase,
@@ -40,7 +40,7 @@ ReactDOM.render(
     <Provider store={store}>
         <ReactReduxFirebaseProvider {...rrfProps}>
             <MuiThemeProvider theme={theme}>
-                <Router history={history}>
+                <Router>
                     <App />
                 </Router>
             </MuiThemeProvider>

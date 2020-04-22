@@ -1,39 +1,52 @@
 import React from 'react';
-import { Button } from '@material-ui/core';
-import { reduxForm, Field, SubmissionError } from 'redux-form';
-import { renderInput } from '../../components/Fields/Input.js'
-import firebase, { db } from '../../Firebase';
+import { Button, makeStyles } from '@material-ui/core';
+import { reduxForm, Field, SubmissionError, InjectedFormProps } from 'redux-form';
+import { renderInput } from '../Fields/Input'
+import firebase, { db } from '../../configureFirebase';
 
-let CreateNewForm = (props) => {
-    const { handleSubmit } = props
+const useStyles = makeStyles({
+    button: {
+        padding: '0 1rem',
+        margin: '1rem 1rem 0 0',
+        fontSize: '1rem',
+        height: '4rem',
+    },
+})
 
-    const validateAddedName = (values) => {
-        const forms = props.forms
-        let i;
-        for (i = 0; i < forms.length; i++) {
+interface Props {
+    props: any,
+    forms: any
+}
+
+let Form: React.FC<Props & InjectedFormProps<{}, Props>> = (props: any) => {
+    const { handleSubmit, forms } = props
+
+    const classes = useStyles();
+
+    const validateAddedName = (values: { name: string }) => {
+        for (let i = 0; i < forms.length; i++) {
             if (values.name === forms[i].name) return true;
         }
     }
 
-    const setAtFirestore = async values => {
-        const queries = []
+    const setAtFirestore = async (values: { name: string }) => {
         await db.collection('forms').add({
             name: values.name,
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             title: 'タイトル',
             description: '説明',
-            queries: queries
+            queries: []
         })
     }
 
-    const addNewForm = async values => {
+    const addNewForm = async (values: { name: string }) => {
         if (validateAddedName(values)) {
             throw new SubmissionError({ name: '既に存在する名前です' })
         } else {
             await setAtFirestore(values);
             props.props.history.push({
                 pathname: '/edit',
-                state: { form: {}, name: values.name }
+                state: { name: values.name }
             })
         }
     }
@@ -45,7 +58,7 @@ let CreateNewForm = (props) => {
                 type='submit'
                 variant="outlined"
                 color="primary"
-                className={props.props.classes.button}
+                className={classes.button}
             >
                 新規作成
             </Button>
@@ -53,8 +66,8 @@ let CreateNewForm = (props) => {
     )
 }
 
-CreateNewForm = reduxForm({
+const CreateNewForm = reduxForm<{}, Props>({
     form: 'CreateNewForm'
-})(CreateNewForm)
+})(Form)
 
 export default CreateNewForm

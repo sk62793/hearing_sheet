@@ -1,6 +1,6 @@
 import React from 'react'
 
-export let renderPreview = (props) => {
+export const renderPreview = (props: any) => {
     const { index, queries } = props
     let path = queries[index].path
     return (

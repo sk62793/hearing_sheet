@@ -5,9 +5,17 @@ import {
     REQUEST_ADD_ANSWER,
     SUCCESS_ADD_ANSWER,
 } from '../actions';
-import firebase, { db } from '../Firebase';
+import firebase, { db } from '../configureFirebase';
 import { fetchPost, fetchDelete } from './fetch';
-import { filePath, uploadGCS, deleteGCS } from '../Config';
+import { filePath, uploadGCS, deleteGCS } from '../config/gcs_config';
+
+interface QueryProps {
+    choices?: [],
+    file: any,
+    path?: string,
+    question: string,
+    type: string
+}
 
 export function* updateBriefingForm() {
     while (true) {
@@ -19,7 +27,7 @@ export function* updateBriefingForm() {
         const props = action.payload.props
 
         // ↓GCS上の古いfile、pathを消去
-        previousQueries.map((query, index) => {
+        previousQueries.map((query: QueryProps, index:number) => {
             if (query.type === 'image' && (typeof newQueries[index] === 'undefined' || newQueries[index].type !== 'image')) {
                 let url = `${deleteGCS}${id}${index}`;
                 fetchDelete(url)
@@ -27,7 +35,7 @@ export function* updateBriefingForm() {
         })
 
         // ↓queries内の画像をGCSにアップロードする
-        newQueries.map((query, index) => {
+        newQueries.map((query: QueryProps, index: number) => {
             if (query.type === 'image' && query.file !== null) {
                 let url = `${uploadGCS}${id}${index}`;
                 let file = query.file[0]

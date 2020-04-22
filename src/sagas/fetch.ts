@@ -1,6 +1,6 @@
 import fetch from 'isomorphic-fetch'
 
-export function fetchPost(url, payload) {
+export function fetchPost(url:string, payload:File) {
     return fetch(url, {
         method: "POST",
         body: payload
@@ -18,7 +18,7 @@ export function fetchPost(url, payload) {
         })
 }
 
-export function fetchDelete(url) {
+export function fetchDelete(url:string) {
     return fetch(url, {
         method: 'DELETE'
     })

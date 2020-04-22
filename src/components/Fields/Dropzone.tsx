@@ -1,10 +1,9 @@
 import React from 'react';
 import Dropzone from 'react-dropzone';
 import { FormControl } from '@material-ui/core';
-import { theme } from '../../index.js'
-// import { actionCreators } from 'redux-form'
+import { theme } from '../../index'
 
-export let renderDropzone = (props) => {
+export const renderDropzone = (props: any) => {
     const { input, index, setUrl } = props
     return (
         <FormControl>
@@ -12,10 +11,8 @@ export let renderDropzone = (props) => {
                 <Dropzone
                     name={`queries.${index}.file`}
                     onDrop={(acceptedFiles) => {
-                        if (acceptedFiles.length !== 0) {
-                            input.onChange(acceptedFiles)
-                            setUrl(index, acceptedFiles)
-                        }
+                        input.onChange(acceptedFiles)
+                        setUrl(index, acceptedFiles)
                     }}
                 >
                     {({ getRootProps, getInputProps }) => (
@@ -36,5 +33,5 @@ export let renderDropzone = (props) => {
                 </Dropzone>
             </div>
         </FormControl>
-    )
+    );
 }

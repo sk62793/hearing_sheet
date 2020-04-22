@@ -4,7 +4,7 @@ import {
     withStyles,
     FormControl
 } from '@material-ui/core';
-import { renderInput } from '../Fields/Input.js';
+import { renderInput } from '../Fields/Input';
 
 export const TextAnswer = withStyles(theme => ({
     content: {

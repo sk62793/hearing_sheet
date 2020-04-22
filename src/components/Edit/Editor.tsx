@@ -1,23 +1,60 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { connect } from 'react-redux';
-import { reduxForm, Field, FieldArray, formValueSelector } from 'redux-form';
-import { Button } from '@material-ui/core';
+import { reduxForm, Field, FieldArray, formValueSelector, InjectedFormProps } from 'redux-form';
+import { makeStyles, Button } from '@material-ui/core';
 import { requestUpdateBriefingForm } from '../../actions';
-import { renderInput } from '../../components/Fields/Input.js'
-import { TitleField } from '../../components/Queries/TitleQuery.js'
-import { Queries } from './Queries.js'
+import { renderInput } from '../Fields/Input'
+import { TitleField } from '../Queries/TitleQuery'
+import { Queries } from './Queries'
 
-const selectCurrentData = (props) => {
-    let form;
-    props.forms.forEach(function (element) {
-        if (element.name === props.props.location.state.name) return form = element
-    })
-    return form
+const useStyles = makeStyles({
+    head: {
+        border: '.1rem solid #eee',
+        backgroundColor: '#fff',
+        borderRadius: '.8rem',
+        padding: '2.2rem 2.2rem 2.4rem',
+    },
+    button: {
+        backgroundColor: '#fff',
+        zIndex: 10,
+        padding: '1.5rem',
+        marginTop: '1rem'
+    }
+})
+
+interface Query {
+    choices: string[] | null,
+    path: string | null,
+    question: string,
+    type: string
 }
 
-let EditBriefingForm = (props) => {
+interface Values {
+    title: string,
+    description: string,
+    queries: Query[]
+}
+
+interface FormElement extends Values {
+    id: string,
+    name: string,
+    createdAt: { seconds: number, nanoseconds: number }
+}
+
+interface IEditorProps {
+    forms: any,
+    props: any
+}
+
+let EditFormComponent: React.FC<IEditorProps & InjectedFormProps<{}, IEditorProps>> = (props: any) => {
     const { handleSubmit, queries } = props
-    const classes = props.props.classes
+    const classes = useStyles();
+
+    const selectCurrentData = (props: any) => {
+        let form: FormElement[] = props.forms.filter((element: FormElement) => element.name === props.props.location.state.name);
+        return form[0];
+    }
+
     let form = selectCurrentData(props)
 
     // ↓render前にfirestoreから取得した値を詰める
@@ -30,7 +67,7 @@ let EditBriefingForm = (props) => {
     // ↓質問のtype変更時の処理
     useEffect(() => {
         if (typeof queries !== 'undefined') {
-            queries.map((query, index) => {
+            queries.map((query: Query, index: number) => {
                 if (query.type !== 'image') {
                     props.change(`queries.${index}.path`, null)
                     props.change(`queries.${index}.file`, null)
@@ -42,13 +79,13 @@ let EditBriefingForm = (props) => {
         }
     })
 
-    const submit = (values) => {
+    const submit = (values: Values) => {
         const id = form.id
         const previousQueries = form.queries
         props.requestUpdateBriefingForm(values, id, previousQueries, props)
     }
 
-    const setUrl = (index, acceptedFiles) => {
+    const setUrl = (index: number, acceptedFiles: any) => {
         if (typeof queries !== 'undefined') {
             if (queries[index].type === 'image' && acceptedFiles !== null) {
                 let path = URL.createObjectURL(acceptedFiles[0])
@@ -66,28 +103,23 @@ let EditBriefingForm = (props) => {
             {typeof queries !== 'undefined' && (
                 <FieldArray name='queries' component={Queries} setUrl={setUrl} props={props} queries={queries} />
             )}
-            <Button
-                variant="outlined"
-                color="primary"
-                type="submit"
-                className={classes.button}
-            >
+            <Button variant="outlined" color="primary" type="submit" className={classes.button}>
                 保存
-                </Button>
+            </Button>
         </form>
     )
 }
 
-EditBriefingForm = reduxForm({
+const EditForm = reduxForm<{}, IEditorProps>({
     form: 'formValues',
     enableReinitialize: true
-})(EditBriefingForm)
+})(EditFormComponent)
 
 const selector = formValueSelector('formValues')
-EditBriefingForm = connect(state => {
+const EditBriefingForm = connect(state => {
     const queries = selector(state, 'queries')
     return { queries }
-})(EditBriefingForm)
+})(EditForm)
 
 const mapStateToProps = () => {
     return {
