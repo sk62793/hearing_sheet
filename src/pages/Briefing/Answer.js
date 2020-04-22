@@ -12,8 +12,8 @@ import _ from 'lodash';
 import lightGreen from '@material-ui/core/colors/lightGreen';
 import { firestoreConnect } from 'react-redux-firebase';
 import { sendAnswerRequest } from '../../actions';
-import { TextAnswer } from '../../components/Answers/TextAnswer.js'
-import { RadioAnswer } from '../../components/Answers/RadioAnswer.js'
+import { TextAnswer } from '../../components/Answers/TextAnswer'
+import { RadioAnswer } from '../../components/Answers/RadioAnswer'
 
 const styles = theme => ({
     container: {

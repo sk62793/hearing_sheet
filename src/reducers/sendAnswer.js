@@ -1,7 +1,7 @@
 import {
     REQUEST_ADD_ANSWER,
     SUCCESS_ADD_ANSWER,
-} from '../actions/index.js';
+} from '../actions';
 
 export default function sendAnswerReducer (values = {}, action) {
     switch (action.type) {
